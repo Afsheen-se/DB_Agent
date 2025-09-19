@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Agent Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .query-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .schema-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .query-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .query-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s ease;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #3498db;
+            font-style: italic;
+        }
+
+        .result-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .result-content {
+            margin-top: 15px;
+        }
+
+        .success {
+            color: #27ae60;
+            background: #d5f4e6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            color: #e74c3c;
+            background: #fadbd8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table th {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .schema-table {
+            margin-bottom: 20px;
+        }
+
+        .schema-table h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #ecf0f1;
+            border-radius: 5px;
+        }
+
+        .schema-table table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .schema-table th {
+            background: #95a5a6;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .schema-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9em;
+        }
+
+        .example-queries {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .example-queries h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .example-query {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border-left: 3px solid #3498db;
+        }
+
+        .example-query:hover {
+            background: #e3f2fd;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 SQL Agent Interface</h1>
+            <p>Ask questions about your database in natural language</p>
+        </div>
+
+        <div class="main-content">
+            <div class="query-section">
+                <h2 class="section-title">💬 Ask Your Question</h2>
+                <form class="query-form" id="queryForm">
+                    <textarea 
+                        class="query-input" 
+                        id="queryInput" 
+                        placeholder="Ask me anything about your data...&#10;&#10;Examples:&#10;• Show me all customers&#10;• What products are available?&#10;• How many orders does each customer have?&#10;• What is the total revenue?"
+                        required
+                    ></textarea>
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        🔍 Ask SQL Agent
+                    </button>
+                </form>
+                <div class="loading" id="loading">
+                    🤔 Thinking... Please wait
+                </div>
+            </div>
+
+            <div class="schema-section">
+                <h2 class="section-title">📊 Database Schema</h2>
+                <div id="schemaContent">
+                    <p>Loading database schema...</p>
+                </div>
+                
+                <div class="example-queries">
+                    <h4>💡 Example Questions</h4>
+                    <div class="example-query" onclick="setQuery('Show me all customers')">
+                        Show me all customers
+                    </div>
+                    <div class="example-query" onclick="setQuery('What products are available?')">
+                        What products are available?
+                    </div>
+                    <div class="example-query" onclick="setQuery('How many orders does each customer have?')">
+                        How many orders does each customer have?
+                    </div>
+                    <div class="example-query" onclick="setQuery('What is the total revenue from all orders?')">
+                        What is the total revenue from all orders?
+                    </div>
+                    <div class="example-query" onclick="setQuery('Show me recent orders with customer names')">
+                        Show me recent orders with customer names
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-section" id="resultSection" style="display: none;">
+            <h2 class="section-title">📋 Results</h2>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Load schema on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSchema();
+        });
+
+        // Handle form submission
+        document.getElementById('queryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = document.getElementById('queryInput').value.trim();
+            if (query) {
+                submitQuery(query);
+            }
+        });
+
+        function setQuery(query) {
+            document.getElementById('queryInput').value = query;
+        }
+
+        function loadSchema() {
+            fetch('/api/schema')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.schema) {
+                        displaySchema(data.schema);
+                    } else {
+                        document.getElementById('schemaContent').innerHTML = 
+                            '<p style="color: #e74c3c;">Error loading schema: ' + (data.error || 'Unknown error') + '</p>';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('schemaContent').innerHTML = 
+                        '<p style="color: #e74c3c;">Error loading schema: ' + error.message + '</p>';
+                });
+        }
+
+        function displaySchema(schema) {
+            let html = '';
+            for (const [tableName, columns] of Object.entries(schema)) {
+                html += `
+                    <div class="schema-table">
+                        <h4>📋 ${tableName}</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Type</th>
+                                    <th>Nullable</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${columns.map(col => `
+                                    <tr>
+                                        <td><strong>${col.name}</strong></td>
+                                        <td>${col.type}</td>
+                                        <td>${col.nullable ? 'Yes' : 'No'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            document.getElementById('schemaContent').innerHTML = html;
+        }
+
+        function submitQuery(query) {
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+
+            // Show loading state
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            resultSection.style.display = 'none';
+
+            // Submit query
+            fetch('/api/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResult(data);
+            })
+            .catch(error => {
+                displayResult({
+                    success: false,
+                    message: 'Error: ' + error.message
+                });
+            })
+            .finally(() => {
+                // Hide loading state
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+                resultSection.style.display = 'block';
+            });
+        }
+
+        function displayResult(data) {
+            const resultContent = document.getElementById('resultContent');
+            let html = '';
+
+            if (data.success) {
+                html += `<div class="success">✅ ${data.message}</div>`;
+                
+                if (data.data && data.data.columns && data.data.rows) {
+                    html += '<table class="data-table">';
+                    html += '<thead><tr>';
+                    data.data.columns.forEach(col => {
+                        html += `<th>${col}</th>`;
+                    });
+                    html += '</tr></thead><tbody>';
+                    
+                    data.data.rows.forEach(row => {
+                        html += '<tr>';
+                        row.forEach(cell => {
+                            html += `<td>${cell}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table>';
+                }
+            } else {
+                html += `<div class="error">❌ ${data.message || data.error}</div>`;
+            }
+
+            resultContent.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
